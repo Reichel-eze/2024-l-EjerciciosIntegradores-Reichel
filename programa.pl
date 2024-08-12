@@ -157,3 +157,78 @@ ciudadesVuelo(Vuelo, Ciudades) :-
     vuelo(Vuelo, _, _),
     findall(Ciudad, pasaPorCiudad(Vuelo, Ciudad), Ciudades).
     
+% ----------------- Se ha formado una pareja --------------------
+
+/*
+Predicados disponibles:
+- preferencia(Persona, Preferencia, OtraPersona)
+*/
+
+% mientras mas chico es la prefrerencia --> mayor preferencia
+
+% Ana prefiere a Luis antes que a Juan y a Juan antes que a Pedro
+preferencia(ana, 1, luis).
+preferencia(ana, 2, juan).
+preferencia(ana, 3, pedro).
+preferencia(mora, 3, luis).
+preferencia(mora, 1, juan).
+preferencia(mora, 2, pedro).
+preferencia(marta, 2, luis).
+preferencia(marta, 3, juan).
+preferencia(marta, 1, pedro).
+preferencia(luis, 1, ana).
+preferencia(luis, 2, mora).
+preferencia(luis, 3, marta).
+preferencia(juan, 1, marta).
+preferencia(juan, 2, ana).
+preferencia(juan, 3, mora).
+preferencia(pedro, 3, mora).
+preferencia(pedro, 2, marta).
+preferencia(pedro, 1, ana).
+preferencia(milhouse, 1, ana).
+preferencia(milhouse, 2, marta).
+preferencia(milhouse, 3, mora).
+
+/* 1) parejaPosible/2
+Relaciona a una persona con un functor pareja/3 compuesto por las dos
+personas de la pareja y el grado de compatibilidad entre ambas, el cual
+se calcula como 6 - el nivel de preferencia de cada persona por la otra
+
+Si una de las dos personas NO esta interesada en la otra, NO sera una 
+pareja posible.
+
+Por ejemplo, las parejas posibles para Ana serian los functores
+- pareja(ana, luis, 4).
+- pareja(ana, juan, 2). y
+- pareja(ana, pedro, 2).
+
+*/
+
+parejaPosible(Persona, pareja(Persona, Pareja, Compatibilidad)) :-
+    preferencia(Persona, NivelDePreferencia1, Pareja),
+    preferencia(Pareja, NivelDePreferencia2, Persona),
+    Compatibilidad is 6 - NivelDePreferencia1 - NivelDePreferencia2.
+
+estanInteresados(Persona, OtraPersona) :-
+    preferencia(Persona, _, OtraPersona),
+    preferencia(OtraPersona, _, Persona),
+    Persona \= OtraPersona.
+
+/* 2) mejorPareja/2
+Relaciona a una persona con una pareja posible, de modo que se maximice
+el grado de compatibilidad. Podria haber mas de una, en el caso de que 
+el grado de compatibilidad sea el mismo
+*/
+
+mejorPareja(Persona, MejorPareja) :-
+    parejaPosible(Persona, MejorPareja),
+    not((parejaPosible(Persona, OtraPareja), mayorCompatibilidad(OtraPareja, MejorPareja))).
+    % No existe otra pareja posible, que tenga mayor compatibilidad que la mejor pareja
+
+mayorCompatibilidad(pareja(_,_,CompatibilidadMayor), pareja(_,_,CompatibilidadMenor)) :-
+    CompatibilidadMayor > CompatibilidadMenor.
+
+%mayorCompatibilidad(MayorPareja, MenorPareja) :-
+%    parejaPosible(Persona, pareja(Persona, MayorPareja, CompatibilidadMayor)),
+%    parejaPosible(Persona, pareja(Persona, MenorPareja, CompatibilidadMenor)),
+%    CompatibilidadMayor > CompatibilidadMenor.
